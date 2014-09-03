@@ -30,7 +30,7 @@ type
 
   const
     _DEBUG: Boolean = true;
-    _VERSION:String = '0.3 2014/09/03';
+    _VERSION:String = '0.2 2014/09/03';
 
 { TMyApplication }
 
