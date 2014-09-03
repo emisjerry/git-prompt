@@ -1,6 +1,9 @@
 {
   gitprompt: Git prompt utility
   Author: Jerry Jian (emisjerry@gmail.com)
+
+  v0.01 2014/09/02: Initial version
+  v0.02 2014/09/03: Add different color for branch status
 }
 program gitprompt;
 
@@ -10,7 +13,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp, Windows, IniFiles, Dos
+  Classes, SysUtils, CustApp, Windows, IniFiles, Dos, Process
   { you can add units after this };
 
 type
@@ -27,7 +30,7 @@ type
 
   const
     _DEBUG: Boolean = true;
-    _VERSION:String = '0.1 2014/09/02';
+    _VERSION:String = '0.3 2014/09/03';
 
 { TMyApplication }
 
@@ -36,6 +39,12 @@ begin
   writeln('gitprompt - Git info utility v' + _VERSION + ' [written by Jerry Jian (emisjerry@gmail.com)]');
   writeln('');
   writeln('Output the new prompt command based on git-prompt.ini.');
+  writeln('');
+  writeln('Color schemes for branch name in prompt:');
+  writeln('  Cyan: local up-to-date with the remote');
+  writeln('  Red:  local behind with the remote');
+  writeln('  yellow: local non-sync with the remote');
+  writeln('  Green: local changes');
   Result := true;
 end;
 
@@ -114,7 +123,7 @@ procedure TMyApplication.DoRun;
 var _iPos: Integer;
   _sBranchName, _sCurrentDir, _sText, _sExeFileDir: String;
   _sDefaultFGColor, _shighlightFGColor: String;
-  _sDefaultBGColor, _shighlightBGColor, _sParam: String;
+  _sDefaultBGColor, _shighlightBGColor, _sBranchStatus, _sBranchStatusCode, _sParam: String;
   _sPrompt, s, _sBatchFile, _sTempDir: AnsiString;
   _oFileHEAD : TextFile;
   _oFileBatch: TextFile;
@@ -137,6 +146,7 @@ begin
     Terminate;
     Exit;
   end;
+
   _oIni := TIniFile.Create(_sExeFileDir + 'git-prompt.ini');
   if not FileExists(_sExeFileDir + 'git-prompt.ini') then begin
     _oIni.WriteString('Prompt', 'DefaultFG', 'light green');
@@ -144,6 +154,17 @@ begin
     _oIni.WriteString('Prompt', 'HighlightFG', 'light yellow');
     _oIni.WriteString('Prompt', 'HighlightBG', 'black');
     _oIni.WriteString('Prompt', 'PromptBatch', 'd:\util\git-prompt.bat');
+  end;
+  _sHighlightFGColor := _oIni.ReadString('Prompt', 'HighlightFG.behind', '');
+  if (_sHighlightFGColor = '') then begin
+    _oIni.WriteString('Prompt', 'HighlightFG.up-to-date', 'light cyan');
+    _oIni.WriteString('Prompt', 'HighlightBG.up-to-date', 'black');
+    _oIni.WriteString('Prompt', 'HighlightFG.behind', 'light red');
+    _oIni.WriteString('Prompt', 'HighlightBG.behind', 'black');
+    _oIni.WriteString('Prompt', 'HighlightFG.nonsync', 'light yellow');
+    _oIni.WriteString('Prompt', 'HighlightBG.nonsync', 'black');
+    _oIni.WriteString('Prompt', 'HighlightFG.advance', 'light green');
+    _oIni.WriteString('Prompt', 'HighlightBG.advance', 'black');
   end;
 
   AssignFile(_oFileHEAD, '.git/HEAD');
@@ -155,24 +176,42 @@ begin
 
   _iPos := Pos('heads/', _sText);
   if (_iPos > 0) then begin
+    _sBranchName := Copy(_sText, _iPos+6, 99);
+
     _sDefaultFGColor := _oIni.ReadString('Prompt', 'DefaultFG', 'white');
     _sDefaultFGColor := getEscapeColor(_sDefaultFGColor, 'FG');
-    _sHighlightFGColor := _oIni.ReadString('Prompt', 'HighlightFG', 'white');
-    _sHighlightFGColor := getEscapeColor(_sHighlightFGColor, 'FG');
-
     _sDefaultBGColor := _oIni.ReadString('Prompt', 'DefaultBG', 'black');
     _sDefaultBGColor := getEscapeColor(_sDefaultBGColor, 'BG');
-    _sHighlightBGColor := _oIni.ReadString('Prompt', 'HighlightBG', 'black');
+
+    _sBranchStatus := ''; _sBranchStatusCode := '';
+    if (RunCommand('git', ['status'], s)) then begin
+      _iPos := Pos('Your branch is ', s);
+      if (_iPos > 0) then begin
+        _sBranchStatus := Copy(s, _iPos+15, 255);
+        _iPos := Pos(' ', _sBranchStatus);
+        _sBranchStatusCode := '.' + Copy(_sBranchStatus, 1, _iPos-1);  // "behind" or "up-to-date"
+        _iPos := Pos(#10, _sBranchStatus);
+        if (_iPos > 0) then begin
+          _sBranchStatus := Copy(_sBranchStatus, 1, _iPos-1);  // The status message.
+        end else begin
+          _iPos := Pos('.', _sBranchStatus);
+          _sBranchStatus := Copy(_sBranchStatus, 1, _iPos);
+        end;
+      end;
+    end;
+    _sHighlightFGColor := _oIni.ReadString('Prompt', 'HighlightFG' + _sBranchStatusCode, 'white');
+    _sHighlightFGColor := getEscapeColor(_sHighlightFGColor, 'FG');
+    _sHighlightBGColor := _oIni.ReadString('Prompt', 'HighlightBG' + _sBranchStatusCode, 'black');
     _sHighlightBGColor := getEscapeColor(_sHighlightBGColor, 'BG');
 
 
-    _sBranchName := Copy(_sText, _iPos+6, 99);
     _sPrompt := '$p ($E[' + _sHighlightFGColor + _sHighlightBGColor + 'm' +
          _sBranchName + '$E[' + _sDefaultFGColor + _sDefaultBGColor + 'm)$g';
 
     _sTempDir := GetEnv('TEMP');
     Writeln('prompt ' + _sPrompt);
     Writeln('@echo Branch: ' + _sBranchName);
+    if (_sBranchStatusCode <> '') then Writeln('@echo Branch is ' + _sBranchStatus);
     Writeln('@rem Use git-prompt.bat to change your prompt.');
     Writeln('@rem git-prompt.bat will generate git-prompt-temp.bat in ' + _sTempDir + ', then execute it to change prompt');
 
@@ -181,8 +220,13 @@ begin
       AssignFile(_oFileBatch, _sBatchFile);
       ReWrite(_oFileBatch);
       s := '@echo off' + #13#10+
+        'if "%1"=="-?" goto HELP' + #13#10 +
+        'if "%1"=="-help" goto HELP' + #13#10 +
         'if exist .git\HEAD goto GIT' + #13#10 +
         'goto NOT_GIT' + #13#10 +
+        ':HELP' + #13#10 +
+        '  git prompt -?' + #13#10 +
+        '  goto END' + #13#10 +
         ':GIT' + #13#10 +
         '  git prompt > %TEMP%\git-prompt-temp.bat' + #13#10+
         '  call %TEMP%\git-prompt-temp.bat' + #13#10 +
