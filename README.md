@@ -43,3 +43,5 @@ PromptBatch=d:\util\git-prompt.bat
 
 ###Version info
 * v0.01 2014/09/02 Initial version
+* v0.02 2014/09/03: Add different color for branch status
+* v0.03 2014/09/04: Get root folder to read HEAD file properly

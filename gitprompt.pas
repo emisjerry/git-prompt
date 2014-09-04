@@ -4,6 +4,7 @@
 
   v0.01 2014/09/02: Initial version
   v0.02 2014/09/03: Add different color for branch status
+  v0.03 2014/09/04: Get root folder to read HEAD file properly
 }
 program gitprompt;
 
@@ -46,6 +47,19 @@ begin
   writeln('  yellow: local non-sync with the remote');
   writeln('  Green: local changes');
   Result := true;
+end;
+
+function getHEADFile(): String;
+var
+  _sResult, s: String;
+begin
+  _sResult := '.git/HEAD';
+  // git rev-parse --show-toplevel will get the root folder
+  if (RunCommand('git', ['rev-parse', '--show-toplevel'], s)) then begin
+    s := Copy(s, 1, Length(s)-1);  // remove the last #10
+    _sResult := s + '/' + _sResult;
+  end;
+  Result := _sResult;
 end;
 
 { URL: http://ascii-table.com/ansi-escape-sequences.php
@@ -124,7 +138,7 @@ var _iPos: Integer;
   _sBranchName, _sCurrentDir, _sText, _sExeFileDir: String;
   _sDefaultFGColor, _shighlightFGColor: String;
   _sDefaultBGColor, _shighlightBGColor, _sBranchStatus, _sBranchStatusCode, _sParam: String;
-  _sPrompt, s, _sBatchFile, _sTempDir: AnsiString;
+  _sPrompt, s, _sBatchFile, _sTempDir, _sHEADFile: AnsiString;
   _oFileHEAD : TextFile;
   _oFileBatch: TextFile;
   _oIni: TIniFile;
@@ -140,8 +154,10 @@ begin
 
   _sExeFileDir := ExtractFilePath(ExeName);
   _sCurrentDir := GetCurrentDir();
+  _sHEADFile := getHEADFile();
+  //writeln('echo ' + _sHEADFile);
 
-  if not FileExists('.git/HEAD') then begin
+  if not FileExists(_sHEADFile) then begin
     WriteLn('This folder is not a Git working directory.');
     Terminate;
     Exit;
@@ -167,7 +183,7 @@ begin
     _oIni.WriteString('Prompt', 'HighlightBG.ahead', 'black');
   end;
 
-  AssignFile(_oFileHEAD, '.git/HEAD');
+  AssignFile(_oFileHEAD, _sHEADFile);
   FileMode := fmOpenRead;
   Reset(_oFileHEAD);
 
