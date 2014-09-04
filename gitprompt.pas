@@ -238,8 +238,7 @@ begin
       s := '@echo off' + #13#10+
         'if "%1"=="-?" goto HELP' + #13#10 +
         'if "%1"=="-help" goto HELP' + #13#10 +
-        'if exist .git\HEAD goto GIT' + #13#10 +
-        'goto NOT_GIT' + #13#10 +
+        'goto GIT' + #13#10 +
         ':HELP' + #13#10 +
         '  git prompt -?' + #13#10 +
         '  goto END' + #13#10 +
@@ -248,10 +247,6 @@ begin
         '  call %TEMP%\git-prompt-temp.bat' + #13#10 +
         '  echo:' + #13#10 +
         '  goto END' + #13#10 +
-        ':NOT_GIT' + #13#10 +
-        '  prompt $p$g' + #13#10 +
-        '  echo This folder is not a Git working directory.' + #13#10 +
-        '  echo:' + #13#10 +
         ':END' + #13#10;
 
       Writeln(_oFileBatch, s);
