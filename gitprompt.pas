@@ -163,8 +163,8 @@ begin
     _oIni.WriteString('Prompt', 'HighlightBG.behind', 'black');
     _oIni.WriteString('Prompt', 'HighlightFG.nonsync', 'light yellow');
     _oIni.WriteString('Prompt', 'HighlightBG.nonsync', 'black');
-    _oIni.WriteString('Prompt', 'HighlightFG.advance', 'light green');
-    _oIni.WriteString('Prompt', 'HighlightBG.advance', 'black');
+    _oIni.WriteString('Prompt', 'HighlightFG.ahead', 'light green');
+    _oIni.WriteString('Prompt', 'HighlightBG.ahead', 'black');
   end;
 
   AssignFile(_oFileHEAD, '.git/HEAD');
