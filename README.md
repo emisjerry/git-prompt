@@ -25,11 +25,20 @@ git prompt -?
 ###git-prompt.ini sample:
 ```INI
 [Prompt]
-  DefaultFG=light green
-  DefaultBG=black
-  HighlightFG=light yellow
-  HighlightBG=black
-  PromptBatch=d:\util\git-prompt.bat
+DefaultFG=light green
+DefaultBG=black
+HighlightFG=light green
+HighlightBG=black
+HighlightFG.up-to-date=light cyan
+HighlightBG.up-to-date=black
+HighlightFG.behind=light red
+HighlightBG.behind=black
+HighlightFG.nonsync=light yellow
+HighlightBG.nonsync=black
+HighlightFG.ahead=light green
+HighlightBG.ahead=black
+
+PromptBatch=d:\util\git-prompt.bat
 ```
 
 ###Version info
