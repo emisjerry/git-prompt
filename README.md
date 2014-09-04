@@ -3,7 +3,7 @@
 git-prompt.exe will generate a git-prompt.bat in your specified folder. After that, you can use git-prompt.bat to change DOS-box prompt whick embeded your .git branch name.
 
 ###Setup
-1. Copy git-prompt.exe into **<Git install folder>\libexec\git-core**. We can use "**git prompt**" to execute this command from now on.
+1. Copy git-prompt.exe into **<Git install folder>\libexec\git-core**. We can use "**git prompt**" to execute this command from now on. You need to delete git-prompt.bat and git-prompt.ini first.
 2. At firsttime run git prompt, git-prompt.ini will created in git-core folder. Modify it to change the PromptBatch, then excute git prompt again to generate git-prompt.bat to your specified folder.
 3. From now on, use git-prompt.bat to change the prompt based on your brance name.
 
