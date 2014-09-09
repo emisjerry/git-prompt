@@ -5,6 +5,7 @@
   v0.01 2014/09/02: Initial version
   v0.02 2014/09/03: Add different color for branch status
   v0.03 2014/09/04: Get root folder to read HEAD file properly
+  v0.04 2014/09/09: Add version entry to ini for recreating it
 }
 program gitprompt;
 
@@ -31,7 +32,7 @@ type
 
   const
     _DEBUG: Boolean = true;
-    _VERSION:String = '0.2 2014/09/03';
+    _VERSION:String = '0.04 2014/09/09';
 
 { TMyApplication }
 
@@ -136,17 +137,18 @@ end;
 procedure TMyApplication.DoRun;
 var _iPos: Integer;
   _sBranchName, _sCurrentDir, _sText, _sExeFileDir: String;
-  _sDefaultFGColor, _shighlightFGColor: String;
+  _sDefaultFGColor, _shighlightFGColor, _sIniVersion: String;
   _sDefaultBGColor, _shighlightBGColor, _sBranchStatus, _sBranchStatusCode, _sParam: String;
   _sPrompt, s, _sBatchFile, _sTempDir, _sHEADFile: AnsiString;
   _oFileHEAD : TextFile;
   _oFileBatch: TextFile;
   _oIni: TIniFile;
+  _needCreateIni: Boolean;
 begin
   { add your program here }
   _sParam := '';
   if (ParamCount = 1) then _sParam := ParamStr(1);
-  if (_sParam = '-?') or (_sParam = '-help') then begin
+  if (_sParam = '-?') or (_sParam = '-help') or (_sParam = '-h') then begin
     help();
     Terminate;
     Exit;
@@ -163,14 +165,24 @@ begin
     Exit;
   end;
 
+  _needCreateIni := false;
   _oIni := TIniFile.Create(_sExeFileDir + 'git-prompt.ini');
-  if not FileExists(_sExeFileDir + 'git-prompt.ini') then begin
+  if FileExists(_sExeFileDir + 'git-prompt.ini') then begin
+    _sIniVersion := _oIni.ReadString('Prompt', 'version', '');
+    if (_sIniVersion <> _VERSION) then _needCreateIni := true;
+  end else begin
+    _needCreateIni := true;
+  end;
+
+  if (_needCreateIni) then begin
     _oIni.WriteString('Prompt', 'DefaultFG', 'light green');
     _oIni.WriteString('Prompt', 'DefaultBG', 'black');
     _oIni.WriteString('Prompt', 'HighlightFG', 'light yellow');
     _oIni.WriteString('Prompt', 'HighlightBG', 'black');
     _oIni.WriteString('Prompt', 'PromptBatch', 'd:\util\git-prompt.bat');
   end;
+  _oIni.WriteString('Prompt', 'version', _VERSION);
+
   _sHighlightFGColor := _oIni.ReadString('Prompt', 'HighlightFG.behind', '');
   if (_sHighlightFGColor = '') then begin
     _oIni.WriteString('Prompt', 'HighlightFG.up-to-date', 'light cyan');
