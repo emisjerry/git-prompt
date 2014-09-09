@@ -6,6 +6,7 @@
   v0.02 2014/09/03: Add different color for branch status
   v0.03 2014/09/04: Get root folder to read HEAD file properly
   v0.04 2014/09/09: Add version entry to ini for recreating it
+  v0.05 2014/09/09: Fix not git folder error
 }
 program gitprompt;
 
@@ -32,7 +33,7 @@ type
 
   const
     _DEBUG: Boolean = true;
-    _VERSION:String = '0.04 2014/09/09';
+    _VERSION:String = '0.05 2014/09/09';
 
 { TMyApplication }
 
@@ -160,7 +161,7 @@ begin
   //writeln('echo ' + _sHEADFile);
 
   if not FileExists(_sHEADFile) then begin
-    WriteLn('This folder is not a Git working directory.');
+    WriteLn('echo This folder is not a Git working directory.');
     Terminate;
     Exit;
   end;
