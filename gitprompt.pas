@@ -162,6 +162,7 @@ begin
 
   if not FileExists(_sHEADFile) then begin
     WriteLn('echo This folder is not a Git working directory.');
+    Writeln('prompt $p$g');
     Terminate;
     Exit;
   end;
